@@ -2,123 +2,211 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8" />
-  <title>stark.lol – vgy uploader</title>
+  <title>STARK.LOL UPLOADER</title>
   <style>
-    body {
-      font-family: sans-serif;
+    :root {
+      --bg: #0d0d0d;
+      --fg: #ffffff;
+      --muted: #888;
+      --accent: #ccc;
+      --danger: #c62828;
+    }
+
+    html, body {
       margin: 0;
-      background: #f4f4f4;
-      color: #333;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: system-ui, sans-serif;
     }
-    header {
-      background: #111;
-      color: #fff;
-      padding: 20px 0;
-      text-align: center;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 2em;
-      letter-spacing: 1px;
-    }
-    header p {
-      margin: 5px 0 0;
-      font-size: 0.95em;
-      color: #ccc;
-    }
-    main {
-      max-width: 700px;
-      margin: 30px auto;
-      text-align: center;
-      padding: 0 20px;
-    }
-    #drop {
-      border: 2px dashed #888;
-      padding: 50px;
-      margin: 20px auto;
-      cursor: pointer;
-      background: white;
-    }
-    input, textarea, button {
-      margin: 10px auto;
-      display: block;
-    }
-    .image-list {
+
+    #topbar {
+      position: sticky;
+      top: 0;
+      background: #000;
+      padding: 10px 20px;
       display: flex;
-      flex-direction: column;
-      gap: 20px;
-      margin-top: 30px;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
     }
-    .image-box {
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 10px;
-      background: #fff;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+
+    #topbar input {
+      background: #111;
+      border: none;
+      padding: 6px 10px;
+      color: var(--fg);
+      font-size: 0.9em;
+      width: 200px;
     }
-    .image-box img {
-      max-width: 100%;
-      max-height: 300px;
-      object-fit: contain;
-      cursor: pointer;
-    }
-    .link-box {
-      margin-top: 8px;
-      background: #eee;
-      padding: 6px;
-      border-radius: 4px;
-      font-family: monospace;
+
+    #topbar button {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-weight: bold;
       font-size: 0.9em;
       cursor: pointer;
-      overflow-wrap: break-word;
+      margin-left: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
+
+    #topbar button:hover {
+      color: white;
+    }
+
+    header {
+      text-align: center;
+      margin: 60px 0 20px;
+      font-size: 2rem;
+      font-weight: bold;
+      color: white;
+      letter-spacing: 1px;
+    }
+
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+
+    #drop {
+      border: 2px dashed var(--muted);
+      padding: 60px 20px;
+      margin: 30px 0;
+      font-size: 0.9em;
+      color: var(--muted);
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    #status {
+      font-size: 0.75em;
+      color: var(--muted);
+      margin-top: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    textarea {
+      background: #111;
+      color: var(--accent);
+      border: none;
+      width: 100%;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 0.9em;
+      margin-top: 10px;
+      resize: vertical;
+      outline: none;
+      box-shadow: none;
+    }
+
+    .image-list {
+      margin-top: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    .image-list.grid {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: space-between;
+    }
+
+    .image-box {
+      flex: 1 1 48%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .image-box img {
+      max-width: 100%;
+      max-height: 180px;
+      width: auto;
+      cursor: pointer;
+    }
+
+    .link-box {
+      margin-top: 6px;
+      font-family: monospace;
+      font-size: 0.85em;
+      color: var(--accent);
+      cursor: pointer;
+      word-break: break-word;
+      text-transform: none;
+    }
+
     .link-box:hover {
-      background: #ddd;
+      color: white;
     }
+
     #toast {
       position: fixed;
-      left: 50%;
       top: 50%;
+      left: 50%;
       transform: translate(-50%, -50%);
-      background: #222;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 8px;
+      background: #000;
+      color: var(--accent);
+      padding: 10px 20px;
+      font-size: 0.9em;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.3s ease;
-      z-index: 1000;
-      font-size: 1em;
+      transition: opacity 0.2s ease;
+      z-index: 100;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
+
     #toast.show {
       opacity: 1;
+    }
+
+    #viewToggle {
+      font-size: 1em;
+      color: var(--accent);
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-left: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="file"] {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>stark.lol</h1>
-    <p>Dra inn eller lim inn bilde for å laste opp til vgy.me</p>
-  </header>
+  <div id="topbar">
+    <div>
+      <input type="password" id="userkey" placeholder="vgy userkey" />
+      <button onclick="saveUserKey()">Lagre</button>
+    </div>
+    <div>
+      <button onclick="clearHistory()">Tøm historikk</button>
+      <button id="viewToggle" onclick="toggleView()">Grid</button>
+    </div>
+  </div>
+
+  <header>STARK.LOL UPLOADER</header>
 
   <main>
-    <label>
-      Din vgy.me Userkey:
-      <input type="password" id="userkey" placeholder="Lim inn din userkey" style="width: 300px;" />
-    </label>
-    <button onclick="saveUserKey()">💾 Lagre nøkkel</button>
-
     <div id="drop">Klikk, lim inn eller dra bilde hit</div>
-    <input type="file" id="fileInput" accept="image/*" style="display:none" />
-
+    <input type="file" id="fileInput" accept="image/*" />
     <p id="status"></p>
-    <textarea id="output" readonly style="width:300px; height:40px;"></textarea>
-
-    <h2>📸 Historikk</h2>
+    <textarea id="output" readonly></textarea>
     <div class="image-list" id="imageList"></div>
   </main>
 
-  <div id="toast">Link kopiert 📋</div>
+  <div id="toast">Kopiert 📋</div>
 
   <script>
     const drop = document.getElementById('drop');
@@ -127,19 +215,47 @@
     const output = document.getElementById('output');
     const userkeyInput = document.getElementById('userkey');
     const imageList = document.getElementById('imageList');
+    const viewToggle = document.getElementById('viewToggle');
 
     const BATCH_SIZE = 10;
     let history = [];
     let currentIndex = 0;
-    let loadingMore = false;
 
-    // Load saved key and history
+    document.addEventListener('dragover', e => e.preventDefault());
+    document.addEventListener('drop', e => {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) uploadImage(file);
+    });
+
+    drop.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) uploadImage(fileInput.files[0]);
+    });
+
+    window.addEventListener('paste', e => {
+      const items = e.clipboardData.items;
+      for (let item of items) {
+        if (item.kind === 'file') {
+          uploadImage(item.getAsFile());
+          break;
+        }
+      }
+    });
+
     window.addEventListener('DOMContentLoaded', () => {
       const savedKey = localStorage.getItem('vgy_userkey');
       if (savedKey) userkeyInput.value = savedKey;
 
-      const storedHistory = JSON.parse(localStorage.getItem('vgy_history') || '[]');
-      history = storedHistory.reverse(); // newest first
+      const stored = JSON.parse(localStorage.getItem('vgy_history') || '[]');
+      history = stored.reverse();
+
+      const viewMode = localStorage.getItem('view_mode') || 'list';
+      if (viewMode === 'grid') {
+        imageList.classList.add('grid');
+        viewToggle.textContent = 'List';
+      }
+
       loadMoreImages();
     });
 
@@ -151,61 +267,47 @@
       }
     }
 
-    drop.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', () => {
-      if (fileInput.files[0]) uploadImage(fileInput.files[0]);
-    });
-    drop.addEventListener('drop', e => {
-      e.preventDefault();
-      if (e.dataTransfer.files[0]) uploadImage(e.dataTransfer.files[0]);
-    });
-    drop.addEventListener('dragover', e => e.preventDefault());
-    window.addEventListener('paste', e => {
-      const items = e.clipboardData.items;
-      for (let item of items) {
-        if (item.kind === 'file') {
-          uploadImage(item.getAsFile());
-          break;
-        }
+    function clearHistory() {
+      if (confirm("Tømme bildehistorikk?")) {
+        localStorage.removeItem('vgy_history');
+        imageList.innerHTML = '';
+        history = [];
+        currentIndex = 0;
+        showToast("Historikk tømt");
       }
-    });
+    }
 
     async function uploadImage(file) {
-      const userkey = userkeyInput.value.trim();
-      if (!userkey) {
-        alert('Lim inn din vgy.me userkey først.');
-        return;
-      }
+      const key = userkeyInput.value.trim();
+      if (!key) return alert("Lim inn userkey først.");
 
-      status.textContent = 'Laster opp…';
+      status.textContent = "Laster opp…";
       const form = new FormData();
       form.append('file', file);
-      form.append('userkey', userkey);
+      form.append('userkey', key);
 
       try {
         const res = await fetch('https://vgy.me/upload', {
           method: 'POST',
           body: form
         });
+
         const json = await res.json();
         if (res.ok && json.image) {
           const url = json.image;
-          await navigator.clipboard.writeText(url);
           output.value = url;
-          status.textContent = '';
-          showToast("Lastet opp! Lenke kopiert 📋");
-
+          showToast("Lastet opp ✅");
           history.unshift(url);
           localStorage.setItem('vgy_history', JSON.stringify(history.slice().reverse()));
           addImageToList(url, true);
           currentIndex++;
+          status.textContent = "";
         } else {
-          status.textContent = 'Feil ved opplasting';
-          console.error(json);
+          status.textContent = json.error || "Feil ved opplasting";
         }
       } catch (err) {
+        status.textContent = "Nettverksfeil";
         console.error(err);
-        status.textContent = 'Nettverksfeil';
       }
     }
 
@@ -215,21 +317,28 @@
 
       const img = document.createElement('img');
       img.src = url;
-      img.alt = 'Uploaded image';
-      img.loading = 'lazy';
-      img.title = 'Klikk for å kopiere lenken';
-      img.addEventListener('click', () => copyToClipboard(url));
+      img.alt = 'image';
+      img.addEventListener('click', () => {
+        navigator.clipboard.writeText(url).then(() => showToast("Kopiert 📋"));
+      });
 
-      const linkBox = document.createElement('div');
-      linkBox.className = 'link-box';
-      linkBox.textContent = url;
-      linkBox.title = 'Klikk for å kopiere';
-      linkBox.addEventListener('click', () => copyToClipboard(url));
+      const link = document.createElement('div');
+      link.className = 'link-box';
+      link.textContent = url;
+      link.title = "Klikk for å markere";
+
+      link.addEventListener('click', () => {
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.selectNodeContents(link);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      });
 
       box.appendChild(img);
-      box.appendChild(linkBox);
+      box.appendChild(link);
 
-      if (toTop && imageList.firstChild) {
+      if (toTop) {
         imageList.insertBefore(box, imageList.firstChild);
       } else {
         imageList.appendChild(box);
@@ -237,13 +346,9 @@
     }
 
     function loadMoreImages() {
-      if (loadingMore) return;
-      loadingMore = true;
-
-      const nextBatch = history.slice(currentIndex, currentIndex + BATCH_SIZE);
-      nextBatch.forEach(url => addImageToList(url));
-      currentIndex += nextBatch.length;
-      loadingMore = false;
+      const next = history.slice(currentIndex, currentIndex + BATCH_SIZE);
+      next.forEach(url => addImageToList(url));
+      currentIndex += next.length;
     }
 
     window.addEventListener('scroll', () => {
@@ -252,17 +357,18 @@
       }
     });
 
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        showToast("Link kopiert 📋");
-      });
-    }
-
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.textContent = msg;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 1200);
+    }
+
+    function toggleView() {
+      imageList.classList.toggle('grid');
+      const isGrid = imageList.classList.contains('grid');
+      viewToggle.textContent = isGrid ? 'List' : 'Grid';
+      localStorage.setItem('view_mode', isGrid ? 'grid' : 'list');
     }
   </script>
 </body>
