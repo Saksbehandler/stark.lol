@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>STARK.LOL UPLOADER</title>
+  <link rel="icon" href="stark_logo.png" type="image/png" />
   <style>
     :root {
       --bg: #0d0d0d;
@@ -186,10 +187,11 @@
 </head>
 <body>
   <div id="topbar">
-    <div>
-      <input type="password" id="userkey" placeholder="vgy userkey" />
-      <button onclick="saveUserKey()">Lagre</button>
-    </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+    <img src="stark_logo.png" alt="Logo" style="height: 24px;" />
+    <input type="password" id="userkey" placeholder="vgy userkey" />
+    <button onclick="saveUserKey()">Lagre</button>
+  </div>
     <div>
       <button onclick="clearHistory()">Tøm historikk</button>
       <button onclick="window.open('https://vgy.me/account/uploads', '_blank')">Mine opplastninger</button>
