@@ -1,29 +1,124 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="no">
 <head>
   <meta charset="UTF-8" />
-  <title>stark.lol</title>
+  <title>stark.lol – vgy uploader</title>
   <style>
-    body { font-family: sans-serif; text-align: center; margin-top: 30px; }
-    #drop { border: 2px dashed #888; padding: 50px; margin: 20px auto; width: 300px; cursor: pointer; }
-    input, textarea { margin: 10px auto; display: block; }
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      background: #f4f4f4;
+      color: #333;
+    }
+    header {
+      background: #111;
+      color: #fff;
+      padding: 20px 0;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2em;
+      letter-spacing: 1px;
+    }
+    header p {
+      margin: 5px 0 0;
+      font-size: 0.95em;
+      color: #ccc;
+    }
+    main {
+      max-width: 700px;
+      margin: 30px auto;
+      text-align: center;
+      padding: 0 20px;
+    }
+    #drop {
+      border: 2px dashed #888;
+      padding: 50px;
+      margin: 20px auto;
+      cursor: pointer;
+      background: white;
+    }
+    input, textarea, button {
+      margin: 10px auto;
+      display: block;
+    }
+    .image-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 30px;
+    }
+    .image-box {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .image-box img {
+      max-width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      cursor: pointer;
+    }
+    .link-box {
+      margin-top: 8px;
+      background: #eee;
+      padding: 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9em;
+      cursor: pointer;
+      overflow-wrap: break-word;
+    }
+    .link-box:hover {
+      background: #ddd;
+    }
+    #toast {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: #222;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
+      font-size: 1em;
+    }
+    #toast.show {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
-  <h1>Upload image to vgy.me</h1>
+  <header>
+    <h1>stark.lol uploader</h1>
+    <p>Dra inn eller lim inn bilde for å laste opp til vgy.me</p>
+  </header>
 
-  <label>
-    Your vgy.me Userkey:
-    <input type="password" id="userkey" placeholder="Paste your userkey" style="width: 300px;" />
-  </label>
+  <main>
+    <label>
+      Din vgy.me Userkey:
+      <input type="password" id="userkey" placeholder="Lim inn din userkey" style="width: 300px;" />
+    </label>
+    <button onclick="saveUserKey()">💾 Lagre nøkkel</button>
 
-  <button onclick="saveUserKey()">💾 Save Key</button>
+    <div id="drop">Klikk, lim inn eller dra bilde hit</div>
+    <input type="file" id="fileInput" accept="image/*" style="display:none" />
 
-  <div id="drop">Click, paste or drop image here</div>
-  <input type="file" id="fileInput" accept="image/*" style="display:none" />
+    <p id="status"></p>
+    <textarea id="output" readonly style="width:300px; height:40px;"></textarea>
 
-  <p id="status"></p>
-  <textarea id="output" readonly style="width:300px; height:40px;"></textarea>
+    <h2>📸 Tidligere opplastede bilder</h2>
+    <div class="image-list" id="imageList"></div>
+  </main>
+
+  <div id="toast">Link kopiert 📋</div>
 
   <script>
     const drop = document.getElementById('drop');
@@ -31,20 +126,28 @@
     const status = document.getElementById('status');
     const output = document.getElementById('output');
     const userkeyInput = document.getElementById('userkey');
+    const imageList = document.getElementById('imageList');
 
-    // Load saved key on startup
+    const BATCH_SIZE = 10;
+    let history = [];
+    let currentIndex = 0;
+    let loadingMore = false;
+
+    // Load saved key and history
     window.addEventListener('DOMContentLoaded', () => {
       const savedKey = localStorage.getItem('vgy_userkey');
       if (savedKey) userkeyInput.value = savedKey;
+
+      const storedHistory = JSON.parse(localStorage.getItem('vgy_history') || '[]');
+      history = storedHistory.reverse(); // newest first
+      loadMoreImages();
     });
 
     function saveUserKey() {
       const key = userkeyInput.value.trim();
       if (key) {
         localStorage.setItem('vgy_userkey', key);
-        alert('Userkey saved!');
-      } else {
-        alert('Please enter a valid key.');
+        showToast("Nøkkel lagret 🔐");
       }
     }
 
@@ -70,11 +173,11 @@
     async function uploadImage(file) {
       const userkey = userkeyInput.value.trim();
       if (!userkey) {
-        alert('Please enter your vgy.me userkey first.');
+        alert('Lim inn din vgy.me userkey først.');
         return;
       }
 
-      status.textContent = 'Uploading…';
+      status.textContent = 'Laster opp…';
       const form = new FormData();
       form.append('file', file);
       form.append('userkey', userkey);
@@ -89,15 +192,77 @@
           const url = json.image;
           await navigator.clipboard.writeText(url);
           output.value = url;
-          status.textContent = 'Uploaded! Link copied 📋';
+          status.textContent = '';
+          showToast("Lastet opp! Lenke kopiert 📋");
+
+          history.unshift(url);
+          localStorage.setItem('vgy_history', JSON.stringify(history.slice().reverse()));
+          addImageToList(url, true);
+          currentIndex++;
         } else {
-          status.textContent = 'Upload failed';
+          status.textContent = 'Feil ved opplasting';
           console.error(json);
         }
       } catch (err) {
         console.error(err);
-        status.textContent = 'Upload error';
+        status.textContent = 'Nettverksfeil';
       }
+    }
+
+    function addImageToList(url, toTop = false) {
+      const box = document.createElement('div');
+      box.className = 'image-box';
+
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = 'Uploaded image';
+      img.loading = 'lazy';
+      img.title = 'Klikk for å kopiere lenken';
+      img.addEventListener('click', () => copyToClipboard(url));
+
+      const linkBox = document.createElement('div');
+      linkBox.className = 'link-box';
+      linkBox.textContent = url;
+      linkBox.title = 'Klikk for å kopiere';
+      linkBox.addEventListener('click', () => copyToClipboard(url));
+
+      box.appendChild(img);
+      box.appendChild(linkBox);
+
+      if (toTop && imageList.firstChild) {
+        imageList.insertBefore(box, imageList.firstChild);
+      } else {
+        imageList.appendChild(box);
+      }
+    }
+
+    function loadMoreImages() {
+      if (loadingMore) return;
+      loadingMore = true;
+
+      const nextBatch = history.slice(currentIndex, currentIndex + BATCH_SIZE);
+      nextBatch.forEach(url => addImageToList(url));
+      currentIndex += nextBatch.length;
+      loadingMore = false;
+    }
+
+    window.addEventListener('scroll', () => {
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
+        loadMoreImages();
+      }
+    });
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("Link kopiert 📋");
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1200);
     }
   </script>
 </body>
