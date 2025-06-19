@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>stark.lol</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 30px; }
+    #drop { border: 2px dashed #888; padding: 50px; margin: 20px auto; width: 300px; cursor: pointer; }
+    input, textarea { margin: 10px auto; display: block; }
+  </style>
+</head>
+<body>
+  <h1>Upload image to vgy.me</h1>
+
+  <label>
+    Your vgy.me Userkey:
+    <input type="password" id="userkey" placeholder="Paste your userkey" style="width: 300px;" />
+  </label>
+
+  <button onclick="saveUserKey()">💾 Save Key</button>
+
+  <div id="drop">Click, paste or drop image here</div>
+  <input type="file" id="fileInput" accept="image/*" style="display:none" />
+
+  <p id="status"></p>
+  <textarea id="output" readonly style="width:300px; height:40px;"></textarea>
+
+  <script>
+    const drop = document.getElementById('drop');
+    const fileInput = document.getElementById('fileInput');
+    const status = document.getElementById('status');
+    const output = document.getElementById('output');
+    const userkeyInput = document.getElementById('userkey');
+
+    // Load saved key on startup
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedKey = localStorage.getItem('vgy_userkey');
+      if (savedKey) userkeyInput.value = savedKey;
+    });
+
+    function saveUserKey() {
+      const key = userkeyInput.value.trim();
+      if (key) {
+        localStorage.setItem('vgy_userkey', key);
+        alert('Userkey saved!');
+      } else {
+        alert('Please enter a valid key.');
+      }
+    }
+
+    drop.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) uploadImage(fileInput.files[0]);
+    });
+    drop.addEventListener('drop', e => {
+      e.preventDefault();
+      if (e.dataTransfer.files[0]) uploadImage(e.dataTransfer.files[0]);
+    });
+    drop.addEventListener('dragover', e => e.preventDefault());
+    window.addEventListener('paste', e => {
+      const items = e.clipboardData.items;
+      for (let item of items) {
+        if (item.kind === 'file') {
+          uploadImage(item.getAsFile());
+          break;
+        }
+      }
+    });
+
+    async function uploadImage(file) {
+      const userkey = userkeyInput.value.trim();
+      if (!userkey) {
+        alert('Please enter your vgy.me userkey first.');
+        return;
+      }
+
+      status.textContent = 'Uploading…';
+      const form = new FormData();
+      form.append('file', file);
+      form.append('userkey', userkey);
+
+      try {
+        const res = await fetch('https://vgy.me/upload', {
+          method: 'POST',
+          body: form
+        });
+        const json = await res.json();
+        if (res.ok && json.image) {
+          const url = json.image;
+          await navigator.clipboard.writeText(url);
+          output.value = url;
+          status.textContent = 'Uploaded! Link copied 📋';
+        } else {
+          status.textContent = 'Upload failed';
+          console.error(json);
+        }
+      } catch (err) {
+        console.error(err);
+        status.textContent = 'Upload error';
+      }
+    }
+  </script>
+</body>
+</html>
